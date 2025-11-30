@@ -69,11 +69,11 @@ void loop()
         else tosse = 0;
 
         //commenta questi serial.print se vuoi usare serial plotter
-        Serial.print("Integrale = ");
-        Serial.print(intgr_z,5);
-        Serial.print(" | tosse = ");
+        // Serial.print("Integrale = ");
+        // Serial.print(intgr_z,5);
+        // Serial.print(" | tosse = ");
 
-        Serial.println(tosse);
+        Serial.println(intgr_z);
         // azzero integrale e ri-inizializzo il timer
         timer = millis();
         intgr_z = 0;
