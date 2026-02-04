@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Graphs</title>
+    <link rel="stylesheet" href="/static/style.css">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+</head>
+
+<body>
+
+<div class="sidebar">
+    <h2>Cough Monitor</h2>
+    <p><strong>Patient</strong><br>PX-3571</p>
+</div>
+
+<div class="main full">
+
+    <div class="top-bar">
+        <a class="home-btn" href="/patients"> Home</a>
+        <div class="tabs">
+            <a class="tab" href="/dashboard">Dashboard</a>
+            <a class="tab active" href="/graphs">Graphs</a>
+        </div>
+    </div>
+
+    <div class="card wide"><canvas id="imuChart"></canvas></div>
+    <div class="card wide"><canvas id="zcrChart"></canvas></div>
+    <div class="card wide"><canvas id="enChart"></canvas></div>
+
+</div>
+
+<script>
+/* ================= CONFIG ================= */
+const TIME_WINDOW_MS = 60 * 1000;
+
+const IMU_THRESHOLD = 0.11;
+const ZCR_THRESHOLD = 0.002;
+const EN_THRESHOLD  = 125;
+
+/* ================= CHART FACTORY ================= */
+function createChart(ctx, label) {
+    return new Chart(ctx, {
+        data: {
+            datasets: [
+                {
+                    type: 'scatter',
+                    label: label,
+                    data: [],
+                    backgroundColor: [],
+                    pointRadius: 4
+                },
+                {
+                    type: 'line',
+                    label: 'Threshold',
+                    data: [],
+                    borderColor: 'orange',
+                    borderDash: [5, 5],
+                    pointRadius: 0
+                }
+            ]
+        },
+        options: {
+            animation: false,
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    type: 'time',
+                    time: { unit: 'second' }
+                },
+                y: {
+                    min: 0
+                }
+            }
+        }
+    });
+}
+
+/* ================= CREATE CHARTS ================= */
+const imuChart = createChart(
+    document.getElementById("imuChart").getContext("2d"),
+    "IMU"
+);
+const zcrChart = createChart(
+    document.getElementById("zcrChart").getContext("2d"),
+    "ZCR"
+);
+const enChart = createChart(
+    document.getElementById("enChart").getContext("2d"),
+    "Energy"
+);
+
+const charts = [
+    { chart: imuChart, threshold: IMU_THRESHOLD },
+    { chart: zcrChart, threshold: ZCR_THRESHOLD },
+    { chart: enChart,  threshold: EN_THRESHOLD }
+];
+
+/* ================= HELPERS ================= */
+function updateThresholdLine(chart, threshold, now) {
+    chart.data.datasets[1].data = [
+        { x: now - TIME_WINDOW_MS, y: threshold },
+        { x: now, y: threshold }
+    ];
+}
+
+function updateYAxis(chart, threshold) {
+    let maxY = threshold;
+    chart.data.datasets[0].data.forEach(p => {
+        if (p.y > maxY) maxY = p.y;
+    });
+    chart.options.scales.y.max = maxY * 1.1;
+}
+
+function updateXAxis(now) {
+    charts.forEach(({ chart, threshold }) => {
+        chart.options.scales.x.min = now - TIME_WINDOW_MS;
+        chart.options.scales.x.max = now;
+        updateThresholdLine(chart, threshold, now);
+        updateYAxis(chart, threshold);
+        chart.update();
+    });
+}
+
+function addPoint(chart, value, threshold, now) {
+    const dataset = chart.data.datasets[0];
+    const color = value > threshold ? "red" : "black";
+
+    dataset.data.push({ x: now, y: value });
+    dataset.backgroundColor.push(color);
+
+    while (dataset.data.length && dataset.data[0].x < now - TIME_WINDOW_MS) {
+        dataset.data.shift();
+        dataset.backgroundColor.shift();
+    }
+}
+
+/* ================= WEBSOCKET ================= */
+const ws = new WebSocket("ws://" + location.host + "/ws");
+
+ws.onmessage = (event) => {
+    const parts = event.data.split(',');
+    if (parts.length !== 5) return;
+
+    const imu = parseFloat(parts[1]);
+    const zcr = parseFloat(parts[2]);
+    const en  = parseFloat(parts[3]);
+
+    const now = Date.now();
+
+    addPoint(imuChart, imu, IMU_THRESHOLD, now);
+    addPoint(zcrChart, zcr, ZCR_THRESHOLD, now);
+    addPoint(enChart,  en,  EN_THRESHOLD,  now);
+
+    updateXAxis(now);
+};
+
+/* Keep time moving */
+setInterval(() => updateXAxis(Date.now()), 1000);
+</script>
+
+</body>
+</html>

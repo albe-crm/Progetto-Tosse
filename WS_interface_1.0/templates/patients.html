@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Patient Selection</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="sidebar">
+    <h2>Cough Monitor</h2>
+
+    <div class="doctor">
+        Welcome<br><strong>Doctor Placeholder</strong>
+    </div>
+
+    <div class="notifications">
+        <h4>Notifications</h4>
+    </div>
+
+    <a class="logout-btn" href="/logout">Logout</a>
+</div>
+
+<div class="main full">
+
+    <h1>Select Patient</h1>
+
+    <div class="patient-grid">
+
+        <div class="patient-card online" onclick="location.href='/dashboard'">
+            <div class="battery-dot green"></div>
+            <h3>Patient Alpha</h3>
+            <p>PX-3571</p>
+        </div>
+
+        <div class="patient-card offline">
+            <div class="battery-dot red"></div>
+            <h3>Patient Beta</h3>
+            <p>PX-3572</p>
+        </div>
+
+        <div class="patient-card offline">
+            <div class="battery-dot red"></div>
+            <h3>Patient Gamma</h3>
+            <p>PX-3573</p>
+        </div>
+
+        <div class="patient-card offline">
+            <div class="battery-dot red"></div>
+            <h3>Patient Delta</h3>
+            <p>PX-3574</p>
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>
