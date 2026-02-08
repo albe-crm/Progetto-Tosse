@@ -8,7 +8,7 @@
 clear; clc; close all;
 
 %% 1. CONFIGURAZIONE
-serialPort = "COM3";   % <--- CONTROLLA LA TUA PORTA
+serialPort = "COM37";   % <--- CONTROLLA LA TUA PORTA
 baudRate = 500000;     % <--- UGUALE AL TUO CODICE
 outputFileName = "dataset_validazione2.csv";
 
@@ -61,9 +61,11 @@ while isvalid(fig)
     try
         if s.NumBytesAvailable > 0
             line = readline(s);
+            line
+            manualCount
             if isempty(line), continue; end
             
-            vals = str2double(split(line, ','));
+            vals = str2double(split(line, ';'));
             
             if length(vals) >= 3 && ~any(isnan(vals))
                 tElapsed = seconds(datetime('now') - startTime);
