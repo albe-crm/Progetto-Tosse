@@ -294,6 +294,7 @@ if (imu_isTosse) {
   if(TransmitFlag){
     BattTx=float(analogRead(A6));
     BattTx=(BattTx - 0)*(4.16-0)/(533-0)+0;
+    BattTx=4.1;
     //BattTx=map(BattTx,0,533,0,4.16);
     Serial.println(BattTx);
     if(coughFlag){
